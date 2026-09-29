@@ -1,0 +1,20 @@
+name: PingShuai
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  PingShuai:
+    type: application
+    platform: iOS
+    sources: [PingShuai]
+    info:
+      path: PingShuai/Info.plist
+      properties:
+        CFBundleDisplayName: 平甩功
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.pingshuai
+      SWIFT_VERSION: "5.0"
