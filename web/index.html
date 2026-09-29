@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>平甩功</title>
 <style>
-  :root { --bg:#f5f5f7; --fg:#1d1d1f; --sub:#6e6e73; --card:#fff; --acc:#0a84ff; --ok:#30b350; --warn:#ff9500; }
+  :root { --bg:#f5f5f7; --fg:#1d1d1f; --sub:#6e6e73; --card:#fff; --acc:#0a84ff; --ok:#30b350; }
   @media (prefers-color-scheme: dark) { :root { --bg:#000; --fg:#f5f5f7; --sub:#98989d; --card:#1c1c1e; } }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,"PingFang TC",sans-serif;
@@ -20,23 +20,28 @@
   nav button.on { color:var(--acc); font-weight:600; }
   .page { display:none; } .page.on { display:block; }
   .status { text-align:center; font-weight:600; margin:8px 0; }
-  .circle { width:230px; height:230px; border-radius:50%; margin:24px auto 8px; display:flex; align-items:center;
-            justify-content:center; font-size:100px; font-weight:700; background:#0a84ff26; transition:background .12s; }
-  .circle.five { background:var(--warn); color:#fff; }
-  .squat { text-align:center; height:28px; font-size:22px; font-weight:700; color:var(--warn); }
-  .time { text-align:center; font-size:44px; font-variant-numeric:tabular-nums; margin:12px 0; }
+  .big { text-align:center; font-size:72px; font-weight:700; font-variant-numeric:tabular-nums; margin:56px 0 16px; }
+  .bar { height:8px; border-radius:4px; background:#8883; overflow:hidden; margin:0 8px 32px; }
+  .bar i { display:block; height:100%; width:0; background:var(--acc); transition:width .5s linear; }
   .seg { display:flex; background:#8882; border-radius:10px; padding:2px; margin:12px 0; }
   .seg button { flex:1; padding:9px; border:0; border-radius:8px; background:none; color:var(--fg); font-size:16px; }
   .seg button.on { background:var(--card); font-weight:600; box-shadow:0 1px 3px #0003; }
-  .row { font-size:13px; color:var(--sub); margin:12px 0 4px; }
-  input[type=range] { width:100%; }
-  .go { width:100%; padding:16px; border:0; border-radius:14px; background:var(--acc); color:#fff; font-size:20px; font-weight:700; margin-top:16px; }
-  .go.stop { background:#ff3b30; }
+  .btns { display:flex; gap:12px; margin-top:16px; }
+  .go { flex:1; padding:16px; border:0; border-radius:14px; background:var(--acc); color:#fff; font-size:20px; font-weight:700; }
+  .go.stop { background:#ff3b30; } .go.pause { background:#8e8e93; }
   .stats { display:flex; background:var(--card); border-radius:12px; padding:12px 0; margin-bottom:16px; }
   .stats div { flex:1; text-align:center; } .stats b { display:block; font-size:20px; } .stats span { font-size:12px; color:var(--sub); }
-  .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px; }
-  .grid div { height:34px; border-radius:6px; background:#8882; font-size:11px; color:var(--sub); display:flex; align-items:center; justify-content:center; }
-  .grid div.done { background:var(--ok); color:#fff; }
+  .cal { background:var(--card); border-radius:12px; padding:12px; }
+  .calhead { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .calhead b { font-size:17px; } .calhead button { border:0; background:none; color:var(--acc); font-size:22px; padding:4px 12px; }
+  .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+  .grid .wd { font-size:12px; color:var(--sub); padding:4px 0; }
+  .grid .d { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:50%;
+             font-size:15px; position:relative; }
+  .grid .d.done { background:var(--ok); color:#fff; font-weight:600; }
+  .grid .d.today { outline:2px solid var(--acc); }
+  .grid .d.sel { box-shadow:0 0 0 3px #0a84ff66; }
+  .monthsum { font-size:13px; color:var(--sub); text-align:center; margin-top:8px; }
   ul { list-style:none; padding:0; margin:0; } li { background:var(--card); padding:12px; border-radius:10px; margin-bottom:8px;
        display:flex; justify-content:space-between; align-items:center; font-size:14px; }
   li small { color:var(--sub); display:block; } li button { border:0; background:none; color:#ff3b30; font-size:14px; }
@@ -48,16 +53,15 @@
 <main>
   <section id="p-timer" class="page on">
     <div class="status" id="today"></div>
-    <div class="circle" id="circle">10分</div>
-    <div class="squat" id="squat"></div>
-    <div class="time" id="time" hidden></div>
-    <div id="setup">
-      <div class="seg" id="seg"><button data-m="10" class="on">10 分鐘</button><button data-m="30">30 分鐘</button></div>
-      <div class="row" id="bpmLabel"></div>
-      <input type="range" id="beat" min="0.6" max="1.6" step="0.05">
+    <div class="big" id="time">10:00</div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="seg" id="seg"><button data-m="10" class="on">10 分鐘</button><button data-m="30">30 分鐘</button></div>
+    <div class="btns">
+      <button class="go pause" id="pause" hidden>暫停</button>
+      <button class="go" id="go">開始</button>
     </div>
-    <button class="go" id="go">開始</button>
-    <div id="warn">練功時請保持螢幕亮著（鎖屏後語音會停止）</div>
+    <div id="warn">練功時螢幕會保持亮著；鎖屏後音訊通常會繼續播放</div>
+    <audio id="audio" preload="metadata" playsinline></audio>
   </section>
 
   <section id="p-log" class="page">
@@ -66,117 +70,138 @@
       <div><b id="s-days">0</b><span>練功天數</span></div>
       <div><b id="s-min">0</b><span>累計(分)</span></div>
     </div>
-    <h2>最近 28 天</h2><div class="grid" id="grid"></div>
-    <h2>紀錄</h2><ul id="list"></ul>
+    <div class="cal">
+      <div class="calhead"><button id="prev">‹</button><b id="monthTitle"></b><button id="next">›</button></div>
+      <div class="grid" id="grid"></div>
+      <div class="monthsum" id="monthSum"></div>
+    </div>
+    <h2 id="listTitle"></h2><ul id="list"></ul>
   </section>
 </main>
 <nav><button class="on" data-p="timer">練功</button><button data-p="log">日誌</button></nav>
 
 <script>
 const $ = id => document.getElementById(id);
-const NAMES = ["一","二","三","四","五"];
+const audio = $("audio");
 const store = {
   get records() { try { return JSON.parse(localStorage.getItem("records")) || []; } catch { return []; } },
   set records(v) { try { localStorage.setItem("records", JSON.stringify(v)); } catch {} },
-  get beat() { return parseFloat(localStorage.getItem("beat")) || 1.0; },
-  set beat(v) { try { localStorage.setItem("beat", v); } catch {} },
 };
+const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+const dayKey = d => { d = new Date(d); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); };
 
-let minutes = 10, running = false, wakeLock = null, timerId = null;
-let voice = null;
-
-// ---- 語音 ----
-function pickVoice() {
-  const vs = speechSynthesis.getVoices();
-  voice = vs.find(v => v.lang === "zh-TW") || vs.find(v => v.lang.startsWith("zh")) || null;
-}
-if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function speak(t) {
-  if (!("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(t);
-  u.lang = "zh-TW"; if (voice) u.voice = voice; u.rate = 1.1;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
+let minutes = 10, running = false, wakeLock = null;
 
 // ---- 防休眠 ----
 async function lockScreen() { try { wakeLock = await navigator.wakeLock.request("screen"); } catch {} }
 function unlockScreen() { try { wakeLock && wakeLock.release(); } catch {} wakeLock = null; }
-document.addEventListener("visibilitychange", () => { if (running && document.visibilityState === "visible") lockScreen(); });
+document.addEventListener("visibilitychange", () => {
+  if (running && !audio.paused && document.visibilityState === "visible") lockScreen();
+});
 
-// ---- 節奏 ----
-function start() {
-  speak(" "); // 在使用者點擊當下啟動語音
-  running = true; lockScreen();
-  const total = minutes * 60 * 1000, interval = store.beat * 1000;
-  const t0 = performance.now(); let beat = 0;
-  $("setup").hidden = true; $("time").hidden = false; $("go").textContent = "停止"; $("go").classList.add("stop");
-  const tick = () => {
-    if (!running) return;
-    const elapsed = performance.now() - t0;
-    $("time").textContent = fmt(Math.max(0, Math.ceil((total - elapsed) / 1000)));
-    if (elapsed >= total) { speak("完成"); stop(true, total); return; }
-    const n = beat % 5;
-    $("circle").textContent = NAMES[n]; $("circle").classList.toggle("five", n === 4);
-    $("squat").textContent = n === 4 ? "下蹲" : "";
-    speak(NAMES[n]);
-    if (navigator.vibrate) navigator.vibrate(n === 4 ? 60 : 15);
-    beat++;
-    // 以起點為基準計算下一拍，避免累積誤差
-    timerId = setTimeout(tick, Math.max(0, t0 + 1000 + beat * interval - performance.now()));
-  };
-  timerId = setTimeout(tick, 1000);
+// ---- 播放 ----
+function loadTrack() {
+  audio.src = `audio/${minutes}.mp4`;
   $("time").textContent = fmt(minutes * 60);
-  window._t0 = t0;
+  $("prog").style.width = "0";
 }
-function stop(done, total) {
-  const elapsed = done ? total : performance.now() - window._t0;
-  running = false; clearTimeout(timerId); speechSynthesis.cancel(); unlockScreen();
-  $("setup").hidden = false; $("time").hidden = true; $("go").textContent = "開始"; $("go").classList.remove("stop");
-  $("circle").textContent = minutes + "分"; $("circle").classList.remove("five"); $("squat").textContent = "";
-  const sec = Math.floor(elapsed / 1000);
-  if (sec >= 30) store.records = [{ id: Date.now(), date: Date.now(), sec, preset: minutes }, ...store.records];
-  render();
+function updateTime() {
+  const d = audio.duration && isFinite(audio.duration) ? audio.duration : minutes * 60;
+  $("time").textContent = fmt(Math.max(0, d - audio.currentTime));
+  $("prog").style.width = (audio.currentTime / d * 100) + "%";
 }
-const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+audio.addEventListener("timeupdate", updateTime);
+audio.addEventListener("ended", () => finish(true));
 
-// ---- 日誌 ----
-const dayKey = d => { d = new Date(d); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); };
+function setUI(state) { // idle | playing | paused
+  const idle = state === "idle";
+  $("seg").hidden = !idle;
+  $("pause").hidden = idle;
+  $("pause").textContent = state === "paused" ? "繼續" : "暫停";
+  $("go").textContent = idle ? "開始" : "停止";
+  $("go").classList.toggle("stop", !idle);
+}
+async function start() {
+  running = true;
+  try { await audio.play(); } catch { running = false; alert("無法播放音訊，請再試一次"); return; }
+  lockScreen(); setUI("playing");
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: `平甩功 ${minutes} 分鐘` });
+}
+function togglePause() {
+  if (audio.paused) { audio.play(); lockScreen(); setUI("playing"); }
+  else { audio.pause(); unlockScreen(); setUI("paused"); }
+}
+function finish(done) {
+  const sec = Math.floor(done ? (audio.duration || minutes * 60) : audio.currentTime);
+  running = false; audio.pause(); unlockScreen();
+  if (sec >= 30) store.records = [{ id: Date.now(), date: Date.now(), sec, preset: minutes }, ...store.records];
+  loadTrack(); setUI("idle"); render();
+}
+
+$("go").onclick = () => running ? finish(false) : start();
+$("pause").onclick = togglePause;
+$("seg").onclick = e => {
+  const m = e.target.dataset.m; if (!m) return; minutes = +m;
+  [...$("seg").children].forEach(b => b.classList.toggle("on", b.dataset.m === m)); loadTrack();
+};
+
+// ---- 日誌（月曆）----
+let view = new Date(); view.setDate(1);
+let selected = dayKey(Date.now());
+
 function render() {
   const recs = store.records, days = new Set(recs.map(r => dayKey(r.date)));
-  $("today").textContent = days.has(dayKey(Date.now())) ? "✅ 今日已打卡" : "今天還沒練功";
-  $("today").style.color = days.has(dayKey(Date.now())) ? "var(--ok)" : "var(--sub)";
-  let streak = 0, d = new Date(); if (!days.has(dayKey(d))) d.setDate(d.getDate() - 1);
+  const doneToday = days.has(dayKey(Date.now()));
+  $("today").textContent = doneToday ? "✅ 今日已打卡" : "今天還沒練功";
+  $("today").style.color = doneToday ? "var(--ok)" : "var(--sub)";
+
+  let streak = 0, d = new Date(); if (!doneToday) d.setDate(d.getDate() - 1);
   while (days.has(dayKey(d))) { streak++; d.setDate(d.getDate() - 1); }
   $("s-streak").textContent = streak; $("s-days").textContent = days.size;
   $("s-min").textContent = Math.floor(recs.reduce((a, r) => a + r.sec, 0) / 60);
-  $("grid").innerHTML = "";
-  for (let i = 27; i >= 0; i--) {
-    const x = new Date(); x.setDate(x.getDate() - i);
-    const c = document.createElement("div"); c.textContent = x.getDate();
-    if (days.has(dayKey(x))) c.className = "done"; $("grid").appendChild(c);
+
+  // 月曆
+  const y = view.getFullYear(), m = view.getMonth();
+  $("monthTitle").textContent = `${y} 年 ${m + 1} 月`;
+  const g = $("grid"); g.innerHTML = "";
+  "日一二三四五六".split("").forEach(w => g.insertAdjacentHTML("beforeend", `<div class="wd">${w}</div>`));
+  for (let i = 0; i < new Date(y, m, 1).getDay(); i++) g.insertAdjacentHTML("beforeend", "<div></div>");
+  const last = new Date(y, m + 1, 0).getDate();
+  let monthDays = 0, monthSec = 0;
+  for (let i = 1; i <= last; i++) {
+    const key = dayKey(new Date(y, m, i)), c = document.createElement("div");
+    c.className = "d"; c.textContent = i;
+    if (days.has(key)) { c.classList.add("done"); monthDays++; }
+    if (key === dayKey(Date.now())) c.classList.add("today");
+    if (key === selected) c.classList.add("sel");
+    c.onclick = () => { selected = key; render(); };
+    g.appendChild(c);
   }
-  $("list").innerHTML = "";
-  recs.forEach(r => {
+  recs.forEach(r => { const t = new Date(r.date); if (t.getFullYear() === y && t.getMonth() === m) monthSec += r.sec; });
+  $("monthSum").textContent = `本月練功 ${monthDays} 天，共 ${Math.floor(monthSec / 60)} 分鐘`;
+
+  // 選取日紀錄
+  const list = recs.filter(r => dayKey(r.date) === selected);
+  const sd = selected.split("-");
+  $("listTitle").textContent = `${sd[1]} 月 ${sd[2]} 日紀錄`;
+  $("list").innerHTML = list.length ? "" : `<li style="color:var(--sub)">這天沒有練功紀錄</li>`;
+  list.forEach(r => {
     const li = document.createElement("li"), dt = new Date(r.date);
-    li.innerHTML = `<div>${dt.toLocaleDateString("zh-TW")} ${dt.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
-      <small>${Math.floor(r.sec/60)} 分 ${r.sec%60} 秒（${r.preset} 分鐘組）</small></div><button>刪除</button>`;
+    li.innerHTML = `<div>${dt.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}
+      <small>${Math.floor(r.sec / 60)} 分 ${r.sec % 60} 秒（${r.preset} 分鐘組）</small></div><button>刪除</button>`;
     li.querySelector("button").onclick = () => { store.records = store.records.filter(x => x.id !== r.id); render(); };
     $("list").appendChild(li);
   });
 }
+$("prev").onclick = () => { view.setMonth(view.getMonth() - 1); render(); };
+$("next").onclick = () => { view.setMonth(view.getMonth() + 1); render(); };
 
-// ---- UI ----
-$("go").onclick = () => running ? stop(false) : start();
-$("seg").onclick = e => { const m = e.target.dataset.m; if (!m) return; minutes = +m;
-  [...$("seg").children].forEach(b => b.classList.toggle("on", b.dataset.m === m)); $("circle").textContent = minutes + "分"; };
-$("beat").value = store.beat;
-const bpm = () => $("bpmLabel").textContent = `節奏：每拍 ${(+$("beat").value).toFixed(2)} 秒（約 ${Math.round(60 / $("beat").value)} 拍/分）`;
-$("beat").oninput = () => { store.beat = $("beat").value; bpm(); }; bpm();
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
   $("p-timer").classList.toggle("on", b.dataset.p === "timer"); $("p-log").classList.toggle("on", b.dataset.p === "log");
 });
-render();
+
+loadTrack(); render();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
